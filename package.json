@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "watch": "elm-live --dir=public src/Main.elm -- --output=public/bundle.js",
+    "build": "elm make src/Main.elm --optimize --output=public/bundle.js"
+  },
+  "devDependencies": {
+    "elm-live": "^4.0.1"
+  },
+  "dependencies": {
+    "elm": "^0.19.1-3"
+  }
+}
