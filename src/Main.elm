@@ -8,7 +8,9 @@ import Element.Background as Background
 import Helpers.View exposing (cappedHeight, cappedWidth, style)
 import Html exposing (Html)
 import Layer
+import Process
 import Random exposing (Generator)
+import Task
 import Time
 
 
@@ -27,17 +29,12 @@ main =
         { init =
             always
                 ( { colors = Array.empty }
-                , Cmd.none
-                  --, Random.list 8 genColor
-                  --|> Random.generate ColorsCb
+                , Process.sleep 10
+                    |> Task.perform (always Go)
                 )
         , view = view
         , update = update
-        , subscriptions =
-            always
-                (Time.every 10
-                    (always Go)
-                )
+        , subscriptions = always Sub.none
         }
 
 
@@ -121,7 +118,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ColorsCb data ->
-            ( { model | colors = Array.fromList data }, Cmd.none )
+            ( { model | colors = Array.fromList data }
+            , Process.sleep 10
+                |> Task.perform (always Go)
+            )
 
         Go ->
             ( model
