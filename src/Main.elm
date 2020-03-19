@@ -3,24 +3,39 @@ module Main exposing (main)
 import Array exposing (Array)
 import Browser
 import Color
-import Element exposing (Color, centerX, centerY, el, fill, height, none, padding, width)
+import Element exposing (Color, centerX, centerY, el, fill, height, none, padding, rgb255, width)
 import Element.Background as Background
+import Element.Input as Input
 import Helpers.View exposing (cappedHeight, cappedWidth, style)
 import Html exposing (Html)
 import Layer
-import Process
 import Random exposing (Generator)
-import Task
 import Time
 
 
 type alias Model =
-    { colors : Array Color }
+    { colors : Array Color
+    , on : Bool
+    }
 
 
 type Msg
-    = ColorsCb (List Color)
-    | Go
+    = ColorsCb (Maybe (List Color))
+    | Toggle
+
+
+cols : Array Color
+cols =
+    [ rgb255 190 64 48
+    , rgb255 111 130 186
+    , rgb255 222 233 156
+    , rgb255 241 113 62
+    , rgb255 138 214 230
+    , rgb255 249 208 203
+    , rgb255 0 0 0
+    , rgb255 255 255 255
+    ]
+        |> Array.fromList
 
 
 main : Program () Model Msg
@@ -28,13 +43,23 @@ main =
     Browser.element
         { init =
             always
-                ( { colors = Array.empty }
-                , Process.sleep 10
-                    |> Task.perform (always Go)
+                ( { colors = cols
+                  , on = False
+                  }
+                , Cmd.none
                 )
         , view = view
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions =
+            \model ->
+                if model.on then
+                    Time.every 10
+                        (always <|
+                            ColorsCb Nothing
+                        )
+
+                else
+                    Sub.none
         }
 
 
@@ -55,14 +80,21 @@ genColor =
 view : Model -> Html Msg
 view model =
     let
+        arr =
+            if model.on then
+                model.colors
+
+            else
+                cols
+
         attrs =
-            [ Layer.black
-            , Layer.red
+            [ Layer.red
             , Layer.blue
-            , Layer.orange
             , Layer.yellow
+            , Layer.orange
             , Layer.lightBlue
             , Layer.pink
+            , Layer.black
             ]
                 |> List.indexedMap
                     (\i ->
@@ -70,7 +102,7 @@ view model =
                             >> el
                                 [ centerX
                                 , centerY
-                                , model.colors
+                                , arr
                                     |> Array.get i
                                     |> Maybe.map toHex
                                     |> Maybe.withDefault ""
@@ -83,7 +115,7 @@ view model =
                     )
 
         bg =
-            model.colors
+            arr
                 |> Array.get 7
                 |> Maybe.map
                     (Background.color
@@ -91,8 +123,10 @@ view model =
                     )
                 |> Maybe.withDefault []
     in
-    none
-        |> el (attrs ++ [ width fill, height fill ] ++ bg)
+    Input.button (attrs ++ [ width fill, height fill ] ++ bg)
+        { onPress = Just Toggle
+        , label = none
+        }
         |> Element.layoutWith
             { options =
                 [ Element.focusStyle
@@ -102,7 +136,8 @@ view model =
                     }
                 ]
             }
-            []
+            [ style "-webkit-tap-highlight-color" "transparent"
+            ]
 
 
 toHex : Color -> String
@@ -117,14 +152,17 @@ toHex =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ColorsCb data ->
-            ( { model | colors = Array.fromList data }
-            , Process.sleep 10
-                |> Task.perform (always Go)
+        ColorsCb md ->
+            ( { model | colors = md |> Maybe.map Array.fromList |> Maybe.withDefault model.colors }
+            , if md == Nothing then
+                Random.list 8 genColor
+                    |> Random.generate (Just >> ColorsCb)
+
+              else
+                Cmd.none
             )
 
-        Go ->
-            ( model
-            , Random.list 8 genColor
-                |> Random.generate ColorsCb
+        Toggle ->
+            ( { model | on = not model.on }
+            , Cmd.none
             )
