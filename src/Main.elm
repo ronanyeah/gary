@@ -2,12 +2,14 @@ module Main exposing (main)
 
 import Array exposing (Array)
 import Browser
+import Browser.Events
 import Color
 import Element exposing (Color, centerX, centerY, el, fill, height, none, padding, rgb255, width)
 import Element.Background as Background
-import Element.Input as Input
+import Element.Events
 import Helpers.View exposing (cappedHeight, cappedWidth, style)
 import Html exposing (Html)
+import Json.Decode
 import Layer
 import Random exposing (Generator)
 import Time
@@ -52,14 +54,17 @@ main =
         , update = update
         , subscriptions =
             \model ->
-                if model.on then
-                    Time.every 10
-                        (always <|
-                            ColorsCb Nothing
-                        )
+                Sub.batch
+                    [ if model.on then
+                        Time.every 10
+                            (always <|
+                                ColorsCb Nothing
+                            )
 
-                else
-                    Sub.none
+                      else
+                        Sub.none
+                    , Browser.Events.onKeyDown (Json.Decode.succeed Toggle)
+                    ]
         }
 
 
@@ -123,10 +128,15 @@ view model =
                     )
                 |> Maybe.withDefault []
     in
-    Input.button (attrs ++ [ width fill, height fill ] ++ bg)
-        { onPress = Just Toggle
-        , label = none
-        }
+    none
+        |> el
+            (attrs
+                ++ [ width fill
+                   , height fill
+                   , Element.Events.onClick Toggle
+                   ]
+                ++ bg
+            )
         |> Element.layoutWith
             { options =
                 [ Element.focusStyle
@@ -136,8 +146,7 @@ view model =
                     }
                 ]
             }
-            [ style "-webkit-tap-highlight-color" "transparent"
-            ]
+            []
 
 
 toHex : Color -> String
