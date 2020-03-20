@@ -71,15 +71,10 @@ main =
 genColor : Generator Color
 genColor =
     Random.map3
-        (\a b c ->
-            Element.rgb255
-                (round (255 * a))
-                (round (255 * b))
-                (round (255 * c))
-        )
-        (Random.float 0 1)
-        (Random.float 0 1)
-        (Random.float 0 1)
+        Element.rgb255
+        (Random.int 0 255)
+        (Random.int 0 255)
+        (Random.int 0 255)
 
 
 view : Model -> Html Msg
