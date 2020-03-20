@@ -7,8 +7,10 @@ import Color
 import Element exposing (Color, centerX, centerY, el, fill, height, none, padding, rgb255, width)
 import Element.Background as Background
 import Element.Events
-import Helpers.View exposing (cappedHeight, cappedWidth, style)
+import Element.Font as Font
+import Helpers.View exposing (cappedHeight, cappedWidth, style, when)
 import Html exposing (Html)
+import Html.Attributes
 import Json.Decode
 import Layer
 import Random exposing (Generator)
@@ -18,6 +20,7 @@ import Time
 type alias Model =
     { colors : Array Color
     , on : Bool
+    , count : Int
     }
 
 
@@ -31,11 +34,11 @@ cols =
     [ rgb255 190 64 48
     , rgb255 111 130 186
     , rgb255 222 233 156
-    , rgb255 241 113 62
+    , orange
     , rgb255 138 214 230
     , rgb255 249 208 203
-    , rgb255 0 0 0
-    , rgb255 255 255 255
+    , black
+    , white
     ]
         |> Array.fromList
 
@@ -47,6 +50,7 @@ main =
             always
                 ( { colors = cols
                   , on = False
+                  , count = 0
                   }
                 , Cmd.none
                 )
@@ -75,6 +79,21 @@ genColor =
         (Random.int 0 255)
         (Random.int 0 255)
         (Random.int 0 255)
+
+
+white : Color
+white =
+    rgb255 255 255 255
+
+
+black : Color
+black =
+    rgb255 0 0 0
+
+
+orange : Color
+orange =
+    rgb255 241 113 62
 
 
 view : Model -> Html Msg
@@ -114,24 +133,18 @@ view model =
                             >> Element.inFront
                     )
 
+        blk =
+            arr
+                |> Array.get 6
+                |> Maybe.withDefault black
+
         bg =
             arr
                 |> Array.get 7
-                |> Maybe.map
-                    (Background.color
-                        >> List.singleton
-                    )
-                |> Maybe.withDefault []
+                |> Maybe.withDefault white
+                |> Background.color
     in
     none
-        |> el
-            (attrs
-                ++ [ width fill
-                   , height fill
-                   , Element.Events.onClick Toggle
-                   ]
-                ++ bg
-            )
         |> Element.layoutWith
             { options =
                 [ Element.focusStyle
@@ -141,7 +154,30 @@ view model =
                     }
                 ]
             }
-            []
+            (attrs
+                ++ [ width fill
+                   , height fill
+                   , Element.Events.onClick Toggle
+                   , bg
+                   , Element.newTabLink
+                        [ Element.alignRight
+                        , Element.alignBottom
+                        , padding 10
+                        , Font.heavy
+                        , Font.size 100
+                        , Font.color blk
+                        , style "user-select" "none"
+                        , style "-webkit-tap-highlight-color" "transparent"
+                        , Html.Attributes.class "woah"
+                            |> Element.htmlAttribute
+                        ]
+                        { url = "https://tarbh.engineering/"
+                        , label = Element.text "?"
+                        }
+                        |> when (model.count > 3 && model.count < 8)
+                        |> Element.inFront
+                   ]
+            )
 
 
 toHex : Color -> String
@@ -167,6 +203,6 @@ update msg model =
             )
 
         Toggle ->
-            ( { model | on = not model.on }
+            ( { model | on = not model.on, count = model.count + 1 }
             , Cmd.none
             )
