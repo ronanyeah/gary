@@ -11,7 +11,7 @@ import Element.Font as Font
 import Helpers.View exposing (cappedHeight, cappedWidth, style, when)
 import Html exposing (Html)
 import Html.Attributes
-import Json.Decode
+import Json.Decode exposing (Decoder)
 import Layer
 import Random exposing (Generator)
 import Time
@@ -67,9 +67,22 @@ main =
 
                       else
                         Sub.none
-                    , Browser.Events.onKeyDown (Json.Decode.succeed Toggle)
+                    , Browser.Events.onKeyDown onPress
                     ]
         }
+
+
+onPress : Decoder Msg
+onPress =
+    Json.Decode.field "keyCode" Json.Decode.int
+        |> Json.Decode.andThen
+            (\key ->
+                if key == 13 || key == 32 then
+                    Json.Decode.succeed Toggle
+
+                else
+                    Json.Decode.fail ""
+            )
 
 
 genColor : Generator Color
