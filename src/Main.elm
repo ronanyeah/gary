@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Array exposing (Array)
+import Array
 import Browser
 import Browser.Events
 import Color
@@ -18,18 +18,19 @@ import Time
 
 
 type alias Model =
-    { colors : Array Color
+    { colors : List Color
     , on : Bool
     , count : Int
     }
 
 
 type Msg
-    = ColorsCb (Maybe (List Color))
+    = ColorsCb (List Color)
+    | Colors
     | Toggle
 
 
-cols : Array Color
+cols : List Color
 cols =
     [ rgb255 190 64 48
     , rgb255 111 130 186
@@ -40,7 +41,6 @@ cols =
     , black
     , white
     ]
-        |> Array.fromList
 
 
 main : Program () Model Msg
@@ -61,8 +61,8 @@ main =
                 Sub.batch
                     [ if model.on then
                         Time.every 10
-                            (always <|
-                                ColorsCb Nothing
+                            (always
+                                Colors
                             )
 
                       else
@@ -112,13 +112,6 @@ orange =
 view : Model -> Html Msg
 view model =
     let
-        arr =
-            if model.on then
-                model.colors
-
-            else
-                cols
-
         attrs =
             [ Layer.red
             , Layer.blue
@@ -128,31 +121,32 @@ view model =
             , Layer.pink
             , Layer.black
             ]
-                |> List.indexedMap
-                    (\i ->
+                |> List.map2
+                    (\c ->
                         Element.html
                             >> el
                                 [ centerX
                                 , centerY
-                                , arr
-                                    |> Array.get i
-                                    |> Maybe.map toHex
-                                    |> Maybe.withDefault ""
-                                    |> style "fill"
+                                , style "fill" (toHex c)
                                 , cappedWidth 500
                                 , cappedHeight 500
                                 , Element.padding 50
                                 ]
                             >> Element.inFront
                     )
+                    model.colors
+
+        a2 =
+            model.colors
+                |> Array.fromList
 
         blk =
-            arr
+            a2
                 |> Array.get 6
                 |> Maybe.withDefault black
 
         bg =
-            arr
+            a2
                 |> Array.get 7
                 |> Maybe.withDefault white
                 |> Background.color
@@ -205,17 +199,22 @@ toHex =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ColorsCb md ->
-            ( { model | colors = md |> Maybe.map Array.fromList |> Maybe.withDefault model.colors }
-            , if md == Nothing then
-                Random.list 8 genColor
-                    |> Random.generate (Just >> ColorsCb)
+        Colors ->
+            ( model
+            , Random.list 8 genColor
+                |> Random.generate ColorsCb
+            )
 
-              else
-                Cmd.none
+        ColorsCb md ->
+            ( { model | colors = md }
+            , Cmd.none
             )
 
         Toggle ->
-            ( { model | on = not model.on, count = model.count + 1 }
+            ( { model
+                | on = not model.on
+                , colors = cols
+                , count = model.count + 1
+              }
             , Cmd.none
             )
