@@ -13,14 +13,13 @@
             "elm/random": "1.0.0",
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
-            "mdgriffith/elm-ui": "1.1.7",
+            "mdgriffith/elm-ui": "1.1.8",
             "ronanyeah/helpers": "3.0.0",
-            "tesk9/palette": "2.0.0"
+            "tesk9/palette": "3.0.1"
         },
         "indirect": {
-            "Skinney/murmur3": "2.0.8",
             "danyx23/elm-uuid": "2.1.2",
-            "dillonkearns/elm-graphql": "5.0.0",
+            "dillonkearns/elm-graphql": "5.0.3",
             "elm/bytes": "1.0.8",
             "elm/file": "1.0.5",
             "elm/http": "2.0.0",

@@ -1,9 +1,8 @@
 module Main exposing (main)
 
-import Array
+import Array exposing (Array)
 import Browser
 import Browser.Events
-import Color
 import Element exposing (Color, centerX, centerY, el, fill, height, none, padding, rgb255, width)
 import Element.Background as Background
 import Element.Events
@@ -13,20 +12,22 @@ import Html exposing (Html)
 import Html.Attributes
 import Json.Decode exposing (Decoder)
 import Layer
+import Process
 import Random exposing (Generator)
+import SolidColor
+import Task
 import Time
 
 
 type alias Model =
-    { colors : List Color
+    { colors : Array Color
     , on : Bool
     , count : Int
     }
 
 
 type Msg
-    = ColorsCb (List Color)
-    | Colors
+    = ColorsCb Int Color
     | Toggle
 
 
@@ -48,7 +49,7 @@ main =
     Browser.element
         { init =
             always
-                ( { colors = cols
+                ( { colors = Array.fromList cols
                   , on = False
                   , count = 0
                   }
@@ -57,18 +58,7 @@ main =
         , view = view
         , update = update
         , subscriptions =
-            \model ->
-                Sub.batch
-                    [ if model.on then
-                        Time.every 10
-                            (always
-                                Colors
-                            )
-
-                      else
-                        Sub.none
-                    , Browser.Events.onKeyDown onPress
-                    ]
+            \_ -> Browser.Events.onKeyDown onPress
         }
 
 
@@ -134,19 +124,15 @@ view model =
                                 ]
                             >> Element.inFront
                     )
-                    model.colors
-
-        a2 =
-            model.colors
-                |> Array.fromList
+                    (Array.toList model.colors)
 
         blk =
-            a2
+            model.colors
                 |> Array.get 6
                 |> Maybe.withDefault black
 
         bg =
-            a2
+            model.colors
                 |> Array.get 7
                 |> Maybe.withDefault white
                 |> Background.color
@@ -165,6 +151,7 @@ view model =
                 ++ [ width fill
                    , height fill
                    , Element.Events.onClick Toggle
+                   , Element.pointer
                    , bg
                    , Element.newTabLink
                         [ Element.alignRight
@@ -191,30 +178,59 @@ toHex : Color -> String
 toHex =
     Element.toRgb
         >> (\{ red, green, blue } ->
-                Color.fromRGB ( red * 255, green * 255, blue * 255 )
+                SolidColor.fromRGB ( red * 255, green * 255, blue * 255 )
            )
-        >> Color.toHex
+        >> SolidColor.toHex
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Colors ->
-            ( model
-            , Random.list 8 genColor
-                |> Random.generate ColorsCb
-            )
+        ColorsCb n md ->
+            let
+                next =
+                    if n >= 7 then
+                        0
 
-        ColorsCb md ->
-            ( { model | colors = md }
-            , Cmd.none
-            )
+                    else
+                        n + 1
+            in
+            if model.on then
+                ( { model
+                    | colors = Array.set n md model.colors
+                  }
+                , Process.sleep 5
+                    |> Task.andThen
+                        (\_ ->
+                            Time.now
+                        )
+                    |> Task.map
+                        (Time.posixToMillis
+                            >> Random.initialSeed
+                            >> Random.step genColor
+                            >> Tuple.first
+                        )
+                    |> Task.perform (ColorsCb next)
+                )
+
+            else
+                ( { model | colors = Array.fromList cols }, Cmd.none )
 
         Toggle ->
-            ( { model
-                | on = not model.on
-                , colors = cols
-                , count = model.count + 1
-              }
-            , Cmd.none
-            )
+            if model.on then
+                ( { model
+                    | on = False
+                    , colors = Array.fromList cols
+                    , count = model.count + 1
+                  }
+                , Cmd.none
+                )
+
+            else
+                ( { model
+                    | on = True
+                    , count = model.count + 1
+                  }
+                , genColor
+                    |> Random.generate (ColorsCb 0)
+                )
