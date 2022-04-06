@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "watch": "elm-live --dir=public src/Main.elm -- --output=public/bundle.js",
-    "build": "elm make src/Main.elm --optimize --output=public/bundle.js"
+    "watch": "elm-live --dir=public src/Main.elm -- --output=public/gary/bundle.js",
+    "build": "elm make src/Main.elm --optimize --output=public/gary/bundle.js"
   },
   "devDependencies": {
     "elm-live": "^4.0.1"
