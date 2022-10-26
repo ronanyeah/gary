@@ -7,11 +7,13 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Events
 import Element.Font as Font
+import Element.Input as Input
 import Helpers.View exposing (cappedHeight, cappedWidth, style, when, whenAttr)
 import Html exposing (Html)
 import Html.Attributes
 import Json.Decode exposing (Decoder)
 import Layer
+import Ports
 import Process
 import Random exposing (Generator)
 import SolidColor
@@ -29,6 +31,7 @@ type alias Model =
 type Msg
     = ColorsCb Int Color
     | Toggle
+    | OpenLink String
 
 
 cols : List Color
@@ -124,6 +127,7 @@ view model =
                                 , cappedHeight 500
                                 , Element.padding 50
                                 , Element.Events.onClick Toggle
+                                , Element.pointer
                                 ]
                             >> Element.inFront
                     )
@@ -153,7 +157,6 @@ view model =
             (attrs
                 ++ [ width fill
                    , height fill
-                   , Element.pointer
                    , bg
                    , image [ height <| px 100, centerX, centerY, moveDown 200 ]
                         { src = "/gary/hand.png"
@@ -179,13 +182,14 @@ view model =
                    --}
                    --|> when (model.count > 3 && model.count < 8)
                    --|> inFront
-                   , newTabLink
+                   , Input.button
                         [ centerX
                         , padding 15
                         , Font.bold
                         , Font.size 35
                         , Font.color blk
                         , alignBottom
+                        , mouseOver [ alpha 0.7 ]
                         , Font.family [ Font.typeface "Courier New" ]
 
                         --, style "user-select" "none"
@@ -193,7 +197,7 @@ view model =
                         --, Html.Attributes.class "woah"
                         --|> Element.htmlAttribute
                         ]
-                        { url = "https://tarbh.net/"
+                        { onPress = Just <| OpenLink "https://tarbh.net/"
                         , label = text "tarbh.net"
                         }
                         |> inFront
@@ -243,6 +247,9 @@ update msg model =
 
             else
                 ( { model | colors = Array.fromList cols }, Cmd.none )
+
+        OpenLink x ->
+            ( model, Ports.openLink x )
 
         Toggle ->
             if model.on then

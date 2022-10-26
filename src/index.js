@@ -1,6 +1,8 @@
 const { Elm } = require("./Main.elm");
 
-Elm.Main.init({
+const app = Elm.Main.init({
   node: document.getElementById("app"),
   flags: {},
 });
+
+app.ports.openLink.subscribe((x) => window.xnft.openWindow(x));
