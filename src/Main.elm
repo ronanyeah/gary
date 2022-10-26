@@ -3,11 +3,11 @@ module Main exposing (main)
 import Array exposing (Array)
 import Browser
 import Browser.Events
-import Element exposing (Color, centerX, centerY, el, fill, height, none, padding, rgb255, width)
+import Element exposing (..)
 import Element.Background as Background
 import Element.Events
 import Element.Font as Font
-import Helpers.View exposing (cappedHeight, cappedWidth, style, when)
+import Helpers.View exposing (cappedHeight, cappedWidth, style, when, whenAttr)
 import Html exposing (Html)
 import Html.Attributes
 import Json.Decode exposing (Decoder)
@@ -58,7 +58,9 @@ main =
         , view = view
         , update = update
         , subscriptions =
-            \_ -> Browser.Events.onKeyDown onPress
+            \_ ->
+                --Browser.Events.onKeyDown onPress
+                Sub.none
         }
 
 
@@ -121,6 +123,7 @@ view model =
                                 , cappedWidth 500
                                 , cappedHeight 500
                                 , Element.padding 50
+                                , Element.Events.onClick Toggle
                                 ]
                             >> Element.inFront
                     )
@@ -150,26 +153,51 @@ view model =
             (attrs
                 ++ [ width fill
                    , height fill
-                   , Element.Events.onClick Toggle
                    , Element.pointer
                    , bg
-                   , Element.newTabLink
-                        [ Element.alignRight
-                        , Element.alignBottom
-                        , padding 10
-                        , Font.heavy
-                        , Font.size 100
-                        , Font.color blk
-                        , style "user-select" "none"
-                        , style "-webkit-tap-highlight-color" "transparent"
-                        , Html.Attributes.class "woah"
-                            |> Element.htmlAttribute
-                        ]
-                        { url = "https://tarbh.engineering/"
-                        , label = Element.text "?"
+                   , image [ height <| px 100, centerX, centerY, moveDown 200 ]
+                        { src = "/gary/hand.png"
+                        , description = ""
                         }
-                        |> when (model.count > 3 && model.count < 8)
-                        |> Element.inFront
+                        |> inFront
+                        |> whenAttr (model.count == 0)
+
+                   --, newTabLink
+                   --[ alignRight
+                   --, alignBottom
+                   --, padding 10
+                   --, Font.heavy
+                   --, Font.size 100
+                   --, Font.color blk
+                   --, style "user-select" "none"
+                   --, style "-webkit-tap-highlight-color" "transparent"
+                   --, Html.Attributes.class "woah"
+                   --|> Element.htmlAttribute
+                   --]
+                   --{ url = "https://tarbh.engineering/"
+                   --, label = text "?"
+                   --}
+                   --|> when (model.count > 3 && model.count < 8)
+                   --|> inFront
+                   , newTabLink
+                        [ centerX
+                        , padding 15
+                        , Font.bold
+                        , Font.size 35
+                        , Font.color blk
+                        , alignBottom
+                        , Font.family [ Font.typeface "Courier New" ]
+
+                        --, style "user-select" "none"
+                        --, style "-webkit-tap-highlight-color" "transparent"
+                        --, Html.Attributes.class "woah"
+                        --|> Element.htmlAttribute
+                        ]
+                        { url = "https://tarbh.net/"
+                        , label = text "tarbh.net"
+                        }
+                        |> inFront
+                        |> whenAttr (model.count > 1 && not model.on)
                    ]
             )
 
