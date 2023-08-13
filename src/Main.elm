@@ -164,25 +164,7 @@ view model =
                         }
                         |> inFront
                         |> whenAttr (model.count == 0)
-
-                   --, newTabLink
-                   --[ alignRight
-                   --, alignBottom
-                   --, padding 10
-                   --, Font.heavy
-                   --, Font.size 100
-                   --, Font.color blk
-                   --, style "user-select" "none"
-                   --, style "-webkit-tap-highlight-color" "transparent"
-                   --, Html.Attributes.class "woah"
-                   --|> Element.htmlAttribute
-                   --]
-                   --{ url = "https://tarbh.engineering/"
-                   --, label = text "?"
-                   --}
-                   --|> when (model.count > 3 && model.count < 8)
-                   --|> inFront
-                   , Input.button
+                   , newTabLink
                         [ centerX
                         , padding 15
                         , Font.bold
@@ -191,13 +173,13 @@ view model =
                         , alignBottom
                         , mouseOver [ alpha 0.7 ]
                         , Font.family [ Font.typeface "Courier New" ]
-
-                        --, style "user-select" "none"
-                        --, style "-webkit-tap-highlight-color" "transparent"
-                        --, Html.Attributes.class "woah"
-                        --|> Element.htmlAttribute
+                        , style "user-select" "none"
+                        , style "-webkit-tap-highlight-color" "transparent"
+                        , Html.Attributes.class "woah"
+                            |> Element.htmlAttribute
                         ]
-                        { onPress = Just <| OpenLink "https://tarbh.net/"
+                        --{ onPress = Just <| OpenLink
+                        { url = "https://tarbh.net/"
                         , label = text "tarbh.net"
                         }
                         |> inFront
